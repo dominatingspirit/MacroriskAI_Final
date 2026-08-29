@@ -83,7 +83,7 @@ export default function SectorsPage() {
                     <XAxis type="number" tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
                     <YAxis type="category" dataKey="metric" tick={{ fontSize: 10, fill: "#9ca3af" }} width={90} axisLine={false} tickLine={false} />
                     <Tooltip
-                      formatter={(v: number) => [`${v.toFixed(1)}%`, "Growth"]}
+                      formatter={(v) => [`${Number(v ?? 0).toFixed(1)}%`, "Growth"]}
                       cursor={{fill: '#374151', opacity: 0.2}}
                       contentStyle={{
                         backgroundColor: "#111827",

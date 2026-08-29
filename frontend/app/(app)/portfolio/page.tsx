@@ -5,7 +5,7 @@ import { useLeaderboard } from "@/lib/hooks/use-leaderboard";
 import {
   useComparePortfolios, useStressTestPortfolio, useUploadPortfolio,
 } from "@/lib/hooks/use-portfolio";
-import type { PortfolioHolding } from "@/lib/api/types";
+import type { PortfolioHolding, PortfolioHoldingResult, StressTestResult } from "@/lib/api/types";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -18,9 +18,9 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 function scoreBadgeVariant(score: number) {
-  if (score >= 66) return "default";
-  if (score >= 33) return "secondary";
-  return "destructive";
+  if (score >= 66) return "good";
+  if (score >= 33) return "warning";
+  return "critical";
 }
 
 // Color palettes for charts
@@ -52,7 +52,7 @@ function PortfolioPieChart({ pieData }: { pieData: { name: string; value: number
             ))}
           </Pie>
           <Tooltip 
-            formatter={(value: number) => [`${value}%`, "Allocation"]}
+            formatter={(value) => [`${Number(value ?? 0)}%`, "Allocation"]}
             contentStyle={{
               backgroundColor: "#111827",
               border: "1px solid #10b981",
@@ -92,7 +92,7 @@ function SectorPieChart({ data }: { data: { name: string; value: number }[] }) {
             ))}
           </Pie>
           <Tooltip 
-            formatter={(value: number) => [`${value}%`, "Exposure"]}
+            formatter={(value) => [`${Number(value ?? 0)}%`, "Exposure"]}
             contentStyle={{
               backgroundColor: "#111827",
               border: "1px solid #10b981",
@@ -103,9 +103,9 @@ function SectorPieChart({ data }: { data: { name: string; value: number }[] }) {
           />
           <Legend 
             wrapperStyle={{ fontSize: "11px", paddingTop: "10px" }}
-            formatter={(value, entry: any) => (
+            formatter={(value, entry: { payload?: { value?: number } }) => (
               <span className="text-ink-secondary">
-                {value} <span className="font-mono text-ink-muted ml-1">{entry.payload.value}%</span>
+                {value} <span className="font-mono text-ink-muted ml-1">{entry.payload?.value}%</span>
               </span>
             )} 
           />
@@ -178,7 +178,7 @@ function PortfolioBuilder({
           <h3 className="font-bold text-ink-primary text-base">{label}</h3>
           <p className="text-xs text-ink-muted">Allocate your asset weights (Target: 100%)</p>
         </div>
-        <Badge variant={isValid ? "default" : "destructive"} className="px-2.5 py-1">
+        <Badge variant={isValid ? "good" : "critical"} className="px-2.5 py-1">
           {totalWeight.toFixed(1)}% / 100%
         </Badge>
       </div>
@@ -230,6 +230,9 @@ export default function PortfolioPage() {
   const compare = useComparePortfolios();
 
   const [inflation, setInflation] = useState(7.0);
+  // Current baseline repo rate / Brent oil price (master_macro_dataset.csv latest row).
+  const [repoRate] = useState(5.25);
+  const [oilPrice] = useState(85.0);
   const stressTest = useStressTestPortfolio();
 
   const upload = useUploadPortfolio();
@@ -256,6 +259,8 @@ export default function PortfolioPage() {
     stressTest.mutate({
       companies,
       override_inflation: inflation,
+      override_repo: repoRate,
+      override_oil: oilPrice,
     });
   }
 
@@ -283,7 +288,7 @@ export default function PortfolioPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-ink-primary text-base">Instant CSV Portfolio Ingestion</h3>
-              <Badge variant="secondary" className="text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">AI-Powered Parser</Badge>
+              <Badge variant="neutral" className="text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">AI-Powered Parser</Badge>
             </div>
             <p className="text-xs text-ink-muted max-w-xl">
               Upload any standard brokerage format (Groww, Zerodha, Excel export). Our agent automatically normalizes tickers, weights, and maps holdings to live risk data.
@@ -322,7 +327,7 @@ export default function PortfolioPage() {
               
               <div className="bg-surface-2/60 p-4 rounded-xl border border-line flex flex-col justify-center">
                 <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-2">Allocation Distribution</span>
-                <PortfolioPieChart pieData={upload.data.holdings.map((h: any) => ({ name: h.Company, value: h.weight }))} />
+                <PortfolioPieChart pieData={upload.data.holdings.map((h: PortfolioHoldingResult) => ({ name: h.Company, value: h.weight }))} />
               </div>
             </div>
 
@@ -354,7 +359,7 @@ export default function PortfolioPage() {
             <div className="rounded-xl border border-line bg-surface-2/20 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-3">Matched Holdings Breakdown</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                {upload.data.holdings.map((h: any, i: number) => (
+                {upload.data.holdings.map((h: PortfolioHoldingResult, i: number) => (
                   <div key={`${h.Company}-${i}`} className="flex items-center justify-between bg-surface-1 p-2.5 rounded-lg border border-line">
                     <span className="font-medium text-ink-primary text-xs truncate max-w-[120px]" title={h.Company}>{h.Company}</span>
                     <div className="flex items-center gap-2">
@@ -425,11 +430,11 @@ export default function PortfolioPage() {
 
                 <div className="space-y-1.5">
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">Asset Allocation</span>
-                  <PortfolioPieChart pieData={data.holdings.map((h: any) => ({ name: h.Company, value: h.weight }))} />
+                  <PortfolioPieChart pieData={data.holdings.map((h: PortfolioHoldingResult) => ({ name: h.Company, value: h.weight }))} />
                 </div>
 
                 <ul className="space-y-2 text-sm max-h-48 overflow-y-auto">
-                  {data.holdings.map((h: any, i: number) => (
+                  {data.holdings.map((h: PortfolioHoldingResult, i: number) => (
                     <li key={`${h.Company}-${i}`} className="flex justify-between items-center text-ink-secondary bg-surface-2/30 px-3 py-1.5 rounded-lg border border-line/40">
                       <span className="font-medium text-ink-primary">{h.Company} <span className="text-xs text-ink-muted">({h.weight}%)</span></span>
                       <Badge variant="outline" className="font-mono text-xs text-emerald-400 border-emerald-500/20">Resilience: {h.resilience_score}</Badge>
@@ -524,7 +529,7 @@ export default function PortfolioPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-line/60">
-                {stressTest.data.results.map((r: any, idx: number) => (
+                {stressTest.data.results.map((r: StressTestResult, idx: number) => (
                   <tr key={`${r.Company}-${idx}`} className="hover:bg-surface-2/50 transition-colors">
                     <td className="p-3 font-semibold text-ink-primary">{r.Company}</td>
                     <td className="p-3 font-mono text-emerald-400">{r.forecasts["Net Profit Growth"]?.toFixed(1)}%</td>

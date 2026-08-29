@@ -130,7 +130,7 @@ export default function OverviewDashboard() {
                       <Badge variant="outline" className="font-mono text-[10px] text-ink-muted">
                         {mod.metric}
                       </Badge>
-                      <Badge variant="secondary" className="text-[10px] font-semibold">
+                      <Badge variant="neutral" className="text-[10px] font-semibold">
                         {mod.badge}
                       </Badge>
                     </div>

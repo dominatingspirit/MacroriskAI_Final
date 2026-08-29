@@ -45,6 +45,8 @@ export interface UnmatchedHolding {
 export interface PortfolioUploadResponse extends PortfolioAnalysis {
   unmatched_from_csv: UnmatchedHolding[];
   ai_insights: string;
+  /** Not currently emitted by analyze_portfolio() on the backend — the frontend falls back to placeholder data when absent. */
+  sector_analysis?: { name: string; value: number }[];
 }
 
 /**
@@ -188,7 +190,7 @@ export interface ChatHistoryMessage {
 }
 export interface ChatRequest {
   query: string;
-   chat_history?: ChatMessageData[];
+  chat_history?: ChatHistoryMessage[];
   /** Pass the exact AnalyzeCompanyResponse from a prior run to ground answers in it. */
   context?: AnalyzeCompanyResponse | null;
 }
@@ -269,6 +271,8 @@ export interface PortfolioCompareRequest {
 export interface PortfolioCompareResponse {
   portfolio_a: PortfolioAnalysis;
   portfolio_b: PortfolioAnalysis;
+  /** Not currently emitted by compare_portfolios() on the backend — the frontend falls back to placeholder copy when absent. */
+  ai_insights?: string;
 }
 
 export interface StressTestRequest {

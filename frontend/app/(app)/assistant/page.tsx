@@ -31,10 +31,14 @@ export default function AssistantPage() {
   const { lastAnalysis } = useAnalysisContext();
   const viewportRef = useRef<HTMLDivElement>(null);
 
-  // Load saved threads from localStorage on mount
+  // Load saved threads from localStorage on mount. Deliberately a useEffect,
+  // not a lazy useState initializer: localStorage isn't available during
+  // SSR/hydration, so reading it in an initializer would cause a hydration
+  // mismatch.
   useEffect(() => {
     const savedThreads = localStorage.getItem("macrorisk_chat_threads");
     const savedMessages = localStorage.getItem("macrorisk_chat_messages");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (savedThreads) setThreads(JSON.parse(savedThreads));
     if (savedMessages) setSessionMessages(JSON.parse(savedMessages));
   }, []);
@@ -93,7 +97,7 @@ export default function AssistantPage() {
     setSessionMessages((prev) => ({ ...prev, [activeThreadId]: updatedMessages }));
 
     const chatHistoryPayload = updatedMessages
-      .filter((m) => m.role === "user" || m.role === "assistant")
+      .filter((m): m is ChatMessageData & { role: "user" | "assistant" } => m.role === "user" || m.role === "assistant")
       .map((m) => ({ role: m.role, content: m.content }));
 
     chat.mutate(

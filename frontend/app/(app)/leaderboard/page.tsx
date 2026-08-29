@@ -3,6 +3,7 @@
 import { useState, Fragment } from "react";
 import { useLeaderboard } from "@/lib/hooks/use-leaderboard";
 import { useExplainCompany } from "@/lib/hooks/use-narrative";
+import type { CompanyResilience } from "@/lib/api/types";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,7 @@ export default function LeaderboardPage() {
   const [expandedInsight, setExpandedInsight] = useState<string | null>(null);
   
   // State for the View Details modal
-  const [detailsModal, setDetailsModal] = useState<any | null>(null);
+  const [detailsModal, setDetailsModal] = useState<CompanyResilience | null>(null);
   
   const explain = useExplainCompany();
 
