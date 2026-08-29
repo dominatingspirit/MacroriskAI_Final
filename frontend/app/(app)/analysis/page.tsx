@@ -56,7 +56,7 @@ export default function AnalysisPage() {
                 <Activity className="h-5 w-5 text-emerald-400 animate-spin" />
                 <h3 className="font-bold text-ink-primary text-base">Multi-Agent Pipeline Executing</h3>
               </div>
-              <Badge variant="secondary" className="font-mono text-xs text-emerald-400">Live Synthesis</Badge>
+              <Badge variant="neutral" className="font-mono text-xs text-emerald-400">Live Synthasis</Badge>
             </div>
             <div>
               <p className="text-sm font-semibold text-ink-primary">Agents are collaborating…</p>
