@@ -185,6 +185,7 @@ export interface AnalyzeCompanyResponse {
 
 export interface ChatRequest {
   query: string;
+   chat_history?: ChatMessageData[];
   /** Pass the exact AnalyzeCompanyResponse from a prior run to ground answers in it. */
   context?: AnalyzeCompanyResponse | null;
 }
