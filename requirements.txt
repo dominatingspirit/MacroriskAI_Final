@@ -1,0 +1,24 @@
+fastapi
+uvicorn
+pydantic
+numpy
+pandas
+openpyxl  # Required for pandas to read .xlsx files
+scikit-learn
+xgboost
+lightgbm
+statsmodels
+joblib
+linearmodels
+langgraph
+python-dotenv
+openai
+langchain
+langchain-core
+langchain-community
+langchain-openai
+langchain-chroma
+langchain-text-splitters
+pypdf     # Required for PyPDFDirectoryLoader
+python-dateutil
+pyarrow

@@ -1,0 +1,194 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ==========================================================================
+   Design tokens
+   Neutral ramp + chart chrome are drawn from the same source so UI surfaces
+   and embedded charts read as one system. Light is the default; dark is a
+   selected set of steps (not an automatic invert), stamped via next-themes'
+   `.dark` class on <html>.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  --surface-0: #f9f9f7; /* page plane */
+  --surface-1: #fcfcfb; /* card / chart surface */
+  --surface-2: #f1f0ea; /* inputs, subtle elevation */
+  --surface-3: #e9e7df; /* hover wash */
+
+  --ink-primary: #0b0b0b;
+  --ink-secondary: #52514e;
+  --ink-muted: #898781;
+  --ink-on-accent: #ffffff;
+
+  --line: #e1e0d9;
+  --line-strong: #c3c2b7;
+  --ring: rgba(16, 185, 129, 0.15); /* Updated to green tint */
+
+  /* Emerald Green Theme - Light Mode */
+  --accent: #10b981;
+  --accent-strong: #047857;
+  --accent-ink: #059669;
+  --accent-soft: #d1fae5;
+
+  --delta-positive: #006300;
+  --delta-negative: #d03b3b;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+
+  --shadow-card: 0 1px 2px rgba(11, 11, 11, 0.04), 0 12px 28px -12px rgba(11, 11, 11, 0.14);
+  --shadow-pop: 0 4px 10px rgba(11, 11, 11, 0.06), 0 24px 48px -16px rgba(11, 11, 11, 0.22);
+
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --surface-0: #0a0a0a;
+  --surface-1: #151513;
+  --surface-2: #1d1d1a;
+  --surface-3: #262622;
+
+  --ink-primary: #f7f6f2;
+  --ink-secondary: #c3c2b7;
+  --ink-muted: #8d8b82;
+  --ink-on-accent: #ffffff;
+
+  --line: #2a2a26;
+  --line-strong: #3a3a35;
+  --ring: rgba(16, 185, 129, 0.2); /* Updated to green tint */
+
+  /* Emerald Green Theme - Dark Mode */
+  --accent: #10b981;
+  --accent-strong: #34d399;
+  --accent-ink: #34d399;
+  --accent-soft: rgba(16, 185, 129, 0.16);
+
+  --delta-positive: #24c93f;
+  --delta-negative: #f0776a;
+  --status-good: #24c93f;
+  --status-warning: #ffcf5c;
+  --status-serious: #f0916b;
+  --status-critical: #f0776a;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 20px 40px -20px rgba(0, 0, 0, 0.7);
+  --shadow-pop: 0 8px 20px rgba(0, 0, 0, 0.45), 0 32px 64px -20px rgba(0, 0, 0, 0.8);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  --color-ink-primary: var(--ink-primary);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-on-accent: var(--ink-on-accent);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ring: var(--ring);
+
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-good: var(--delta-positive);
+  --color-critical: var(--delta-negative);
+  --color-warning: var(--status-warning);
+  --color-serious: var(--status-serious);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--surface-0);
+  color: var(--ink-primary);
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+/* Scrollbars — restrained, not the browser default chrome */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.text-good {
+  color: var(--delta-positive);
+}
+.text-critical {
+  color: var(--delta-negative);
+}
+.text-muted {
+  color: var(--ink-muted);
+}
+
+/* Glass surface used sparingly: topbar, floating command elements */
+.glass {
+  background: color-mix(in oklab, var(--surface-1) 72%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}

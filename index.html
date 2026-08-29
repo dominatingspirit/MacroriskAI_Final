@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MacroRisk AI - Multi-Agent Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            font-weight: 600; color: #0f172a; margin-top: 1.5em; margin-bottom: 0.5em;
+        }
+        .markdown-body h1 { font-size: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3em; }
+        .markdown-body h2 { font-size: 1.25rem; }
+        .markdown-body h3 { font-size: 1.1rem; }
+        .markdown-body p { margin-bottom: 1em; color: #334155; line-height: 1.6; }
+        .markdown-body ul, .markdown-body ol { margin-bottom: 1em; padding-left: 2em; color: #334155; list-style-type: disc; }
+        .markdown-body li { margin-bottom: 0.25em; }
+        .markdown-body strong { font-weight: 600; color: #0f172a; }
+        
+        /* Table Styling */
+        .data-table th { background-color: #f1f5f9; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b; padding: 12px; text-align: left; }
+        .data-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 0.875rem; color: #334155; }
+        .data-table tr:hover { background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-slate-800 pb-12">
+
+<nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <span class="text-xl font-bold text-blue-600">MacroRisk AI</span>
+            </div>
+            <div class="flex space-x-8">
+                <button onclick="switchTab('macro')" id="nav-macro" class="tab-btn border-b-2 border-blue-600 text-blue-600 px-1 pt-1 text-sm font-medium transition-colors">1. Macro Forecast</button>
+                <button onclick="switchTab('history')" id="nav-history" class="tab-btn border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 px-1 pt-1 text-sm font-medium transition-colors">2. Company History</button>
+                <button onclick="switchTab('pipeline')" id="nav-pipeline" class="tab-btn border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 px-1 pt-1 text-sm font-medium transition-colors">3. End-to-End Pipeline</button>
+                <button onclick="switchTab('rag')" id="nav-rag" class="tab-btn border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 px-1 pt-1 text-sm font-medium transition-colors flex items-center gap-1">✨ AI Assistant</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+
+    <div id="tab-macro" class="tab-content block">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-8">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">Run Macroeconomic Forecast (Agent 1)</h2>
+            <div class="flex gap-4 items-end">
+                <div class="flex flex-col gap-2 w-64">
+                    <label for="macroMonths" class="text-sm font-semibold text-slate-700">Forecast Horizon (Months)</label>
+                    <input type="number" id="macroMonths" min="1" max="12" value="6" class="p-3 border border-slate-300 rounded-lg outline-none focus:border-blue-500">
+                </div>
+                <button id="btnRunMacro" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all">Generate Forecast</button>
+            </div>
+        </div>
+
+        <div id="macroLoading" class="hidden text-center py-12"><div class="loader mb-4"></div><p>Simulating economy...</p></div>
+        
+        <div id="macroResults" class="hidden space-y-6">
+            <!-- Top stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
+                    <p class="text-sm text-slate-500 font-semibold mb-1">Final Inflation Prediction</p>
+                    <h3 class="text-4xl font-bold text-blue-600" id="mac-final-inf"></h3>
+                    <p class="text-xs text-slate-400 mt-2" id="mac-bounds"></p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
+                    <p class="text-sm text-slate-500 font-semibold mb-1">Inflation Regime</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-2" id="mac-regime"></h3>
+                    <p class="text-xs text-slate-400 mt-2" id="mac-trend"></p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
+                    <p class="text-sm text-slate-500 font-semibold mb-1">Model Agreement</p>
+                    <h3 class="text-2xl font-bold text-emerald-600 mt-2" id="mac-agreement"></h3>
+                    <p class="text-xs text-slate-400 mt-2" id="mac-policy"></p>
+                </div>
+            </div>
+
+            <!-- Trajectory Table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200">
+                    <h3 class="font-bold text-slate-800">Forecast Trajectory</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full data-table" id="macroTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Inflation (YoY)</th>
+                                <th>WPI</th>
+                                <th>Repo Rate</th>
+                                <th>Brent Oil ($)</th>
+                                <th>Exchange Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody><!-- Injected --></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Ensemble Breakdown -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <h3 class="font-bold text-slate-800 mb-4">Final Month Model Breakdown</h3>
+                <div id="mac-breakdown" class="flex gap-6 flex-wrap"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-history" class="tab-content hidden">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-8">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">Fetch Company Financials (Agent 2)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-slate-700">Sector</label>
+                    <select id="sectorHist" class="p-3 border border-slate-300 rounded-lg outline-none focus:border-blue-500 global-sector-select"><option value="">Loading...</option></select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-slate-700">Company</label>
+                    <select id="companyHist" disabled class="p-3 border border-slate-300 rounded-lg outline-none focus:border-blue-500 global-company-select"><option value="">Select sector first</option></select>
+                </div>
+                <button id="btnRunHist" disabled class="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-semibold py-3 px-6 rounded-lg transition-all">Fetch History</button>
+            </div>
+        </div>
+
+        <div id="histLoading" class="hidden text-center py-12"><div class="loader mb-4"></div><p>Pulling financial records...</p></div>
+
+        <div id="histResults" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <div>
+                    <h3 class="text-2xl font-bold text-slate-800" id="hist-name"></h3>
+                    <p class="text-sm text-slate-500" id="hist-ind"></p>
+                </div>
+                <div class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold" id="hist-latest"></div>
+            </div>
+            <div class="overflow-x-auto max-h-[600px]">
+                <table class="w-full data-table relative" id="histTable">
+                    <thead class="sticky top-0 bg-slate-100 shadow-sm">
+                        <tr>
+                            <th>Year</th>
+                            <th>Borrowings Growth</th>
+                            <th>Equity Growth</th>
+                            <th>Total Assets Growth</th>
+                            <th>Operating Profit Growth</th>
+                            <th>Net Profit Growth</th>
+                            <th>Op. Cash Flow Growth</th>
+                            <th>Inflation</th>
+                            <th>Repo Rate</th>
+                            <th>Brent Oil</th>
+                        </tr>
+                    </thead>
+                    <tbody><!-- Injected --></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-pipeline" class="tab-content hidden">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-8 border-t-4 border-t-blue-600">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                LangGraph Orchestrator <span class="bg-purple-100 text-purple-700 text-xs py-1 px-2 rounded-md">Agents 1, 2, 3 & 4</span>
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-slate-700">Sector</label>
+                    <select id="sectorPipe" class="p-3 border border-slate-300 rounded-lg outline-none focus:border-blue-500 global-sector-select"><option value="">Loading...</option></select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-slate-700">Company</label>
+                    <select id="companyPipe" disabled class="p-3 border border-slate-300 rounded-lg outline-none focus:border-blue-500 global-company-select"><option value="">Select sector first</option></select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-slate-700">Forecast Horizon</label>
+                    <input type="number" id="monthsPipe" min="1" max="12" value="3" class="p-3 border border-slate-300 rounded-lg outline-none focus:border-blue-500">
+                </div>
+                <button id="btnRunPipe" disabled class="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-sm">Run Pipeline</button>
+            </div>
+        </div>
+
+        <div id="pipeLoading" class="hidden text-center py-12">
+            <div class="loader mb-4"></div>
+            <h3 class="text-lg font-semibold text-slate-700">Agents are collaborating...</h3>
+            <p class="text-sm text-slate-500 mt-2">1: Predicting Economy → 2: Fetching History → 3: Forecasting Financials → 4: Writing Report</p>
+        </div>
+
+        <div id="pipeResults" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold text-slate-800 border-b pb-2">Analysis Results for <span id="res-company" class="text-blue-600"></span></h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Agent 1 Box -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <span class="bg-blue-100 text-blue-700 text-xs py-1 px-2 rounded-md">Agent 1</span> Macro Scenario (<span id="res-horizon"></span> mo)
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="text-slate-600 text-sm">Projected Inflation</span><span class="font-semibold" id="pipe-inf"></span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="text-slate-600 text-sm">Projected Repo Rate</span><span class="font-semibold" id="pipe-repo"></span></div>
+                        <div class="flex justify-between"><span class="text-slate-600 text-sm">Projected Brent Oil</span><span class="font-semibold" id="pipe-oil"></span></div>
+                    </div>
+                </div>
+
+                <!-- Agent 3 Box -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <span class="bg-emerald-100 text-emerald-700 text-xs py-1 px-2 rounded-md">Agent 3</span> Financial Forecasts
+                    </h3>
+                    <div id="financial-metrics" class="space-y-3 h-48 overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+
+            <!-- Agent 4 Box -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-3">
+                    <span class="bg-purple-100 text-purple-700 text-xs py-1 px-2 rounded-md">Agent 4</span> AI Investment Report
+                </h3>
+                <div id="ai-report" class="markdown-body text-sm"></div>
+            </div>
+            
+            <details class="bg-slate-800 rounded-xl mt-8">
+                <summary class="cursor-pointer text-slate-300 p-4 font-mono text-sm">Show Raw LangGraph State</summary>
+                <pre id="json-dump" class="p-4 text-xs text-emerald-400 overflow-x-auto border-t border-slate-700"></pre>
+            </details>
+        </div>
+    </div>
+
+    <div id="tab-rag" class="tab-content hidden max-w-4xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[700px]">
+            <div class="p-6 bg-slate-50 border-b border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800">MacroRisk AI Assistant (RAG)</h2>
+                <p class="text-sm text-slate-500 mt-1">Ask questions about inflation, financial metrics, or dive deeper into the company currently analyzed in the Pipeline tab.</p>
+            </div>
+            
+            <div id="chat-history" class="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
+                <!-- Welcome Message -->
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold flex-shrink-0">AI</div>
+                    <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 max-w-[85%] text-sm text-slate-700">
+                        Hello! I am trained on your macro-financial research papers, dataset, and parametric economic knowledge. <br><br>If you've run the <b>End-to-End Pipeline</b>, I also have access to that company's latest forecasts. What would you like to know?
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-white border-t border-slate-200">
+                <div class="flex gap-2 relative">
+                    <input type="text" id="chat-input" placeholder="Ask about inflation impacts, specific companies, or macro theories..." class="flex-1 p-3 pl-4 bg-slate-100 border-none rounded-full outline-none focus:ring-2 focus:ring-blue-500 text-sm" onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                    <button onclick="sendChatMessage()" id="btn-send-chat" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 w-12 h-12 flex items-center justify-center transition-colors shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 ml-1"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const API_BASE = "http://127.0.0.1:8000";
+    let globalPipelineContext = null; 
+
+    // --- Tab Switching Logic ---
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('border-blue-600', 'text-blue-600');
+            el.classList.add('border-transparent', 'text-slate-500');
+        });
+        
+        document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+        const activeBtn = document.getElementById(`nav-${tabId}`);
+        activeBtn.classList.remove('border-transparent', 'text-slate-500');
+        activeBtn.classList.add('border-blue-600', 'text-blue-600');
+    }
+
+    // --- Format Helper ---
+    function fmt(val, isCurrency=false) {
+        if(val === null || val === undefined || isNaN(val)) return '-';
+        const num = Number(val).toFixed(2);
+        return isCurrency ? `$${num}` : `${num}%`;
+    }
+
+    // --- Global Dropdown Population ---
+    async function loadSectors() {
+        try {
+            const res = await fetch(`${API_BASE}/sectors`);
+            const sectors = await res.json();
+            const sectorSelects = document.querySelectorAll('.global-sector-select');
+            
+            sectorSelects.forEach(select => {
+                select.innerHTML = '<option value="">-- Select Sector --</option>';
+                sectors.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s; opt.textContent = s.replace('Industry_', '').replace(/_/g, ' ');
+                    select.appendChild(opt);
+                });
+                
+                // Add event listener to populate corresponding company dropdown
+                select.addEventListener('change', async (e) => {
+                    const sector = e.target.value;
+                    // Find the sibling company dropdown in the same grid
+                    const companySelect = e.target.closest('.grid').querySelector('.global-company-select');
+                    const runBtn = e.target.closest('.grid').querySelector('button');
+                    
+                    companySelect.innerHTML = '<option value="">Loading...</option>';
+                    companySelect.disabled = true;
+                    if(runBtn) runBtn.disabled = true;
+
+                    if (!sector) return;
+                    try {
+                        const res = await fetch(`${API_BASE}/companies/${sector}`);
+                        const companies = await res.json();
+                        companySelect.innerHTML = '<option value="">-- Select Company --</option>';
+                        companies.forEach(c => {
+                            const opt = document.createElement('option');
+                            opt.value = c; opt.textContent = c;
+                            companySelect.appendChild(opt);
+                        });
+                        companySelect.disabled = false;
+                        
+                        companySelect.onchange = (ev) => {
+                            if(runBtn) runBtn.disabled = !ev.target.value;
+                        }
+                    } catch (err) {
+                        companySelect.innerHTML = '<option value="">Error loading</option>';
+                    }
+                });
+            });
+        } catch (err) {
+            console.error("Backend connection error:", err);
+        }
+    }
+
+    // --- Tab 1: Run Macro Forecast ---
+    document.getElementById('btnRunMacro').addEventListener('click', async () => {
+        const months = parseInt(document.getElementById('macroMonths').value);
+        document.getElementById('macroResults').classList.add('hidden');
+        document.getElementById('macroLoading').classList.remove('hidden');
+
+        try {
+            const res = await fetch(`${API_BASE}/forecast`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ months_ahead: months })
+            });
+            const data = await res.json();
+            
+            // Populate Top Cards
+            document.getElementById('mac-final-inf').textContent = fmt(data.inflation_forecast.final_inflation);
+            document.getElementById('mac-bounds').textContent = `Bounds: ${fmt(data.inflation_forecast.forecast_lower_bound)} to ${fmt(data.inflation_forecast.forecast_upper_bound)}`;
+            
+            document.getElementById('mac-regime').textContent = data.inflation_regime.class;
+            document.getElementById('mac-trend').textContent = `Trend: ${data.macro_summary.inflation_trend} | Commodity: ${data.macro_summary.commodity_pressure}`;
+            
+            document.getElementById('mac-agreement').textContent = data.inflation_forecast.model_agreement;
+            document.getElementById('mac-policy').textContent = `Policy Outlook: ${data.macro_summary.policy_outlook}`;
+
+            // Populate Table
+            const tbody = document.querySelector('#macroTable tbody');
+            tbody.innerHTML = '';
+            data.trajectory.forEach(t => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-semibold">${t.date}</td>
+                        <td class="font-bold text-blue-600">${fmt(t.inflation_forecast)}</td>
+                        <td>${fmt(t.projected_wpi)}</td>
+                        <td>${fmt(t.projected_repo)}</td>
+                        <td>${fmt(t.projected_oil, true)}</td>
+                        <td>₹${fmt(t.projected_exchange)}</td>
+                    </tr>
+                `;
+            });
+
+            // Populate Breakdown
+            const bkContainer = document.getElementById('mac-breakdown');
+            bkContainer.innerHTML = '';
+            for (const [model, val] of Object.entries(data.ensemble_breakdown_final_month)) {
+                bkContainer.innerHTML += `
+                    <div class="flex-1 min-w-[120px] bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <div class="text-xs text-slate-500 uppercase tracking-wide">${model}</div>
+                        <div class="text-lg font-bold text-slate-800">${fmt(val)}</div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('macroResults').classList.remove('hidden');
+        } catch (err) {
+            alert("Error: " + err.message);
+        } finally {
+            document.getElementById('macroLoading').classList.add('hidden');
+        }
+    });
+
+    // --- Tab 2: Run History Fetch ---
+    document.getElementById('btnRunHist').addEventListener('click', async () => {
+        const company = document.getElementById('companyHist').value;
+        document.getElementById('histResults').classList.add('hidden');
+        document.getElementById('histLoading').classList.remove('hidden');
+
+        try {
+            const res = await fetch(`${API_BASE}/company_financials/${company}`);
+            const data = await res.json();
+            
+            document.getElementById('hist-name').textContent = data.company;
+            document.getElementById('hist-ind').textContent = data.industry;
+            document.getElementById('hist-latest').textContent = `Latest Data: ${data.latest_year_available}`;
+
+            const tbody = document.querySelector('#histTable tbody');
+            tbody.innerHTML = '';
+            data.historical_trend.forEach(t => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-semibold bg-slate-50 sticky left-0">${t.Year}</td>
+                        <td>${fmt(t['Borrowings Growth'])}</td>
+                        <td>${fmt(t['Equity Growth'])}</td>
+                        <td>${fmt(t['Total Assets Growth'])}</td>
+                        <td>${fmt(t['Operating Profit Growth'])}</td>
+                        <td>${fmt(t['Net Profit Growth'])}</td>
+                        <td>${fmt(t['Operating Cash Flow Growth'])}</td>
+                        <td class="text-slate-500 bg-blue-50/30">${fmt(t.Inflation)}</td>
+                        <td class="text-slate-500 bg-blue-50/30">${fmt(t.Repo_Rate)}</td>
+                        <td class="text-slate-500 bg-blue-50/30">${fmt(t.Brent_Oil, true)}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('histResults').classList.remove('hidden');
+        } catch (err) {
+            alert("Error: " + err.message);
+        } finally {
+            document.getElementById('histLoading').classList.add('hidden');
+        }
+    });
+
+    // --- Tab 3: Run End-to-End Pipeline ---
+    document.getElementById('btnRunPipe').addEventListener('click', async () => {
+        const company = document.getElementById('companyPipe').value;
+        const months = parseInt(document.getElementById('monthsPipe').value);
+        
+        document.getElementById('pipeResults').classList.add('hidden');
+        document.getElementById('pipeLoading').classList.remove('hidden');
+        
+        try {
+            const res = await fetch(`${API_BASE}/analyze_company`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ company_name: company, months_ahead: months })
+            });
+            const data = await res.json();
+            
+            document.getElementById('res-company').textContent = data.company;
+            document.getElementById('res-horizon').textContent = data.forecast_horizon_months;
+            document.getElementById('pipe-inf').textContent = fmt(data.macro_assumptions_used.projected_inflation);
+            document.getElementById('pipe-repo').textContent = fmt(data.macro_assumptions_used.projected_repo_rate);
+            document.getElementById('pipe-oil').textContent = fmt(data.macro_assumptions_used.projected_brent_oil, true);
+
+            const finContainer = document.getElementById('financial-metrics');
+            finContainer.innerHTML = '';
+            for (const [metric, value] of Object.entries(data.financial_forecasts)) {
+                const impact = data.macro_impacts ? data.macro_impacts[metric] : 0;
+                const valColor = value >= 0 ? 'text-emerald-600' : 'text-red-600';
+                const impColor = impact >= 0 ? 'text-emerald-600' : 'text-red-600';
+                
+                finContainer.innerHTML += `
+                    <div class="flex justify-between items-center border-b border-dashed border-slate-200 pb-2 last:border-0 last:pb-0">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold text-slate-800">${metric}</span>
+                            <span class="text-xs text-slate-500">Macro Impact: <span class="${impColor} font-medium">${impact > 0 ? '+' : ''}${fmt(impact)}</span></span>
+                        </div>
+                        <span class="font-bold text-lg ${valColor}">${value > 0 ? '+' : ''}${fmt(value)}</span>
+                    </div>
+                `;
+            }
+
+            const reportContainer = document.getElementById('ai-report');
+            if (data.investment_report && !data.investment_report.includes("❌ Error")) {
+                reportContainer.innerHTML = marked.parse(data.investment_report);
+            } else {
+                reportContainer.innerHTML = `<div class="p-4 bg-orange-50 text-orange-700 rounded-lg">Report skipped or failed.</div>`;
+            }
+            
+            globalPipelineContext = data;
+
+            document.getElementById('json-dump').textContent = JSON.stringify(data, null, 2);
+            document.getElementById('pipeResults').classList.remove('hidden');
+        } catch (err) {
+            alert("Error: " + err.message);
+        } finally {
+            document.getElementById('pipeLoading').classList.add('hidden');
+        }
+    });
+
+    async function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const query = input.value.trim();
+        if (!query) return;
+
+        const chatHistory = document.getElementById('chat-history');
+        const btnSend = document.getElementById('btn-send-chat');
+
+        // Add User Message
+        chatHistory.innerHTML += `
+            <div class="flex gap-4 flex-row-reverse">
+                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-white font-bold flex-shrink-0">U</div>
+                <div class="bg-blue-600 p-4 rounded-2xl rounded-tr-none shadow-sm text-white max-w-[85%] text-sm">
+                    ${query}
+                </div>
+            </div>
+        `;
+        
+        input.value = '';
+        input.disabled = true;
+        btnSend.disabled = true;
+        
+        // Add Loading Bubble
+        const loadingId = 'loading-' + Date.now();
+        chatHistory.innerHTML += `
+            <div id="${loadingId}" class="flex gap-4">
+                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold flex-shrink-0">AI</div>
+                <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 text-sm text-slate-500 flex items-center gap-2">
+                    <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+            </div>
+        `;
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        try {
+            const res = await fetch(`${API_BASE}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    query: query, 
+                    context: globalPipelineContext // Automatically passes pipeline data if available!
+                })
+            });
+            const data = await res.json();
+            
+            document.getElementById(loadingId).remove();
+
+            // Add AI Response (Parsed with Markdown)
+            chatHistory.innerHTML += `
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold flex-shrink-0">AI</div>
+                    <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 max-w-[85%] text-sm text-slate-800 markdown-body" style="margin-top:0;">
+                        ${marked.parse(data.answer)}
+                    </div>
+                </div>
+            `;
+        } catch (err) {
+            document.getElementById(loadingId).remove();
+            chatHistory.innerHTML += `
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold flex-shrink-0">!</div>
+                    <div class="bg-red-50 p-4 rounded-2xl rounded-tl-none shadow-sm border border-red-200 text-sm text-red-700">
+                        Connection Error: ${err.message}
+                    </div>
+                </div>
+            `;
+        } finally {
+            input.disabled = false;
+            btnSend.disabled = false;
+            input.focus();
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+    }
+
+    // Init App
+    loadSectors();
+</script>
+
+</body>
+</html>

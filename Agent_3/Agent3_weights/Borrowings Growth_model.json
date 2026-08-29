@@ -1,0 +1,74 @@
+{
+    "model_type": "RE",
+    "dependent_variable": "Borrowings Growth",
+    "features": [
+        "const",
+        "Inflation",
+        "Repo_Rate",
+        "Brent_Oil",
+        "Inflation_x_Industry_Consumer_Staples_Pharma",
+        "Inflation_x_Industry_Energy",
+        "Inflation_x_Industry_Financials",
+        "Inflation_x_Industry_Information_Technology",
+        "Inflation_x_Industry_Infrastructure_RealEstate_Logistics"
+    ],
+    "coefficients": {
+        "const": 3114.319874882075,
+        "Inflation": 104.92444779597534,
+        "Repo_Rate": -456.06612557414167,
+        "Brent_Oil": -8.48675457749534,
+        "Inflation_x_Industry_Consumer_Staples_Pharma": 207.36003493585133,
+        "Inflation_x_Industry_Energy": -26.9322807852476,
+        "Inflation_x_Industry_Financials": -35.73207294955417,
+        "Inflation_x_Industry_Information_Technology": 150.2285092887558,
+        "Inflation_x_Industry_Infrastructure_RealEstate_Logistics": -39.496144771727074
+    },
+    "pvalues": {
+        "const": 0.34324248462655294,
+        "Inflation": 0.3980062266377664,
+        "Repo_Rate": 0.28404713603448917,
+        "Brent_Oil": 0.6077855867522697,
+        "Inflation_x_Industry_Consumer_Staples_Pharma": 0.24062810450180994,
+        "Inflation_x_Industry_Energy": 0.449491960212661,
+        "Inflation_x_Industry_Financials": 0.2904198146566872,
+        "Inflation_x_Industry_Information_Technology": 0.32533156005233477,
+        "Inflation_x_Industry_Infrastructure_RealEstate_Logistics": 0.23238487209093361
+    },
+    "std_errors": {
+        "const": 3285.0795633804437,
+        "Inflation": 124.11484053375044,
+        "Repo_Rate": 425.60116354945393,
+        "Brent_Oil": 16.53293887838867,
+        "Inflation_x_Industry_Consumer_Staples_Pharma": 176.65811069622671,
+        "Inflation_x_Industry_Energy": 35.60483908288001,
+        "Inflation_x_Industry_Financials": 33.78913724120313,
+        "Inflation_x_Industry_Information_Technology": 152.69909378732098,
+        "Inflation_x_Industry_Infrastructure_RealEstate_Logistics": 33.061481754371876
+    },
+    "confidence_intervals": {
+        "lower": {
+            "const": -3328.5057695605656,
+            "Inflation": -138.4943985420697,
+            "Repo_Rate": -1290.771659463669,
+            "Brent_Oil": -40.91179650679164,
+            "Inflation_x_Industry_Consumer_Staples_Pharma": -139.1087138213989,
+            "Inflation_x_Industry_Energy": -96.76187421931893,
+            "Inflation_x_Industry_Financials": -102.00064140309817,
+            "Inflation_x_Industry_Information_Technology": -149.25088484918416,
+            "Inflation_x_Industry_Infrastructure_RealEstate_Logistics": -104.33760701964495
+        },
+        "upper": {
+            "const": 9557.145519324717,
+            "Inflation": 348.34329413402037,
+            "Repo_Rate": 378.6394083153856,
+            "Brent_Oil": 23.93828735180096,
+            "Inflation_x_Industry_Consumer_Staples_Pharma": 553.8287836931015,
+            "Inflation_x_Industry_Energy": 42.89731264882373,
+            "Inflation_x_Industry_Financials": 30.536495503989833,
+            "Inflation_x_Industry_Information_Technology": 449.70790342669574,
+            "Inflation_x_Industry_Infrastructure_RealEstate_Logistics": 25.3453174761908
+        }
+    },
+    "r_squared": 0.005393760034196671,
+    "nobs": 1871
+}
