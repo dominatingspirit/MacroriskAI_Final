@@ -182,7 +182,10 @@ export interface AnalyzeCompanyResponse {
 // ---------------------------------------------------------------------------
 // POST /chat — RAG agent
 // ---------------------------------------------------------------------------
-
+export interface ChatHistoryMessage {
+  role: "user" | "assistant";
+  content: string;
+}
 export interface ChatRequest {
   query: string;
    chat_history?: ChatMessageData[];
