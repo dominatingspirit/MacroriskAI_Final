@@ -37,11 +37,9 @@ export async function uploadPortfolioCSV(file: File, monthsAhead = 3): Promise<P
   const formData = new FormData();
   formData.append("file", file);
 
-  // Check your other working API calls to see if they use NEXT_PUBLIC_API_URL or something similar
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-
+  // Using a relative path automatically points to your live Vercel domain in production, and localhost during local dev
   const res = await fetch(
-    `${API_BASE}/api/portfolio/upload?months_ahead=${monthsAhead}`,
+    `/api/portfolio/upload?months_ahead=${monthsAhead}`,
     { method: "POST", body: formData },
   );
 
