@@ -37,9 +37,11 @@ export async function uploadPortfolioCSV(file: File, monthsAhead = 3): Promise<P
   const formData = new FormData();
   formData.append("file", file);
 
-  // Use your global apiFetch helper or standard client setup matching your other routes
+  // Check your other working API calls to see if they use NEXT_PUBLIC_API_URL or something similar
+  const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000';
+  
   const res = await fetch(
-    `http://127.0.0.1:8000/api/portfolio/upload?months_ahead=${monthsAhead}`,
+    `${API_BASE}/api/portfolio/upload?months_ahead=${monthsAhead}`,
     { method: "POST", body: formData },
   );
 
