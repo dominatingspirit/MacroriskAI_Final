@@ -37,11 +37,11 @@ export async function uploadPortfolioCSV(file: File, monthsAhead = 3): Promise<P
   const formData = new FormData();
   formData.append("file", file);
 
-  // Fetch the correct base URL (live or local) defined in your client.ts file
-  const baseUrl = getApiBaseUrl();
+  // Check your other working API calls to see if they use NEXT_PUBLIC_API_BASE_URL or something similar
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
 
   const res = await fetch(
-    `${baseUrl}/api/portfolio/upload?months_ahead=${monthsAhead}`,
+    `${API_BASE}/api/portfolio/upload?months_ahead=${monthsAhead}`,
     { method: "POST", body: formData },
   );
 
