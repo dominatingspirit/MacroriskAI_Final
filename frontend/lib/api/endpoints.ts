@@ -37,9 +37,11 @@ export async function uploadPortfolioCSV(file: File, monthsAhead = 3): Promise<P
   const formData = new FormData();
   formData.append("file", file);
 
-  // Using a relative path automatically points to your live Vercel domain in production, and localhost during local dev
+  // Fetch the correct base URL (live or local) defined in your client.ts file
+  const baseUrl = getApiBaseUrl();
+
   const res = await fetch(
-    `/api/portfolio/upload?months_ahead=${monthsAhead}`,
+    `${baseUrl}/api/portfolio/upload?months_ahead=${monthsAhead}`,
     { method: "POST", body: formData },
   );
 
